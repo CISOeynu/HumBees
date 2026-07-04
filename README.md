@@ -1,4 +1,4 @@
-# 🐝 bumblebee — fleet console
+# 🐝 bumblebee, but with a fleet console
 
 bumblebee is a fast, zero-dependency endpoint scanner that detects developer packages that have been hijacked, backdoored, or have known 0-day exposure. It scans npm, PyPI, Go, Homebrew, Ruby, Composer, browser extensions, MCP servers, and more.
 
