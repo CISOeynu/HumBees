@@ -16,6 +16,8 @@ cd bumblebee
 make build
 make run-agent    # scans this machine, prints NDJSON to stdout
 ```
+*** OR
+Download bumblebee-with-fleet-server.zip, extract it localy
 
 ---
 
