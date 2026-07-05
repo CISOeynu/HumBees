@@ -102,9 +102,10 @@ Per-ecosystem detail: [docs/inventory-sources.md](docs/inventory-sources.md).
 ## Threat INTL updaets
 BubmleBee DOES NOT automatically connect to the internat and fetch updates, instead schedule this command:
 Inside the bumblebee directory:
-,,sh
+
+```sh
 git pull origin main
-,,,
+```
 
 
 ## Dashboard
