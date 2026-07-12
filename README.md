@@ -1,6 +1,6 @@
 # 🐝 bumblebee, but with a fleet console
 
-bumblebee is a fast, zero-dependency endpoint scanner that detects developer packages that have been hijacked, backdoored, or have known 0-day exposure. It scans npm, PyPI, Go, Homebrew, Ruby, Composer, browser extensions, MCP servers, and more.
+bumblebee (perplexityai/bumblebee ) is a fast, zero-dependency endpoint scanner that detects developer packages that have been hijacked, backdoored, or have known 0-day exposure. It scans npm, PyPI, Go, Homebrew, Ruby, Composer, browser extensions, MCP servers, and more.
 
 This fork adds `bumblebee-server`: a central fleet console that collects reports from many endpoints over HTTP, stores state per host, and serves a traffic-light dashboard with full HTML reports — all as a single binary with no database required.
 
