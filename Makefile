@@ -31,7 +31,7 @@ build-agent:
 
 ## Start the fleet server on http://localhost:8080
 run-server: $(SERVER)
-	$(SERVER) --addr :8080 --data-dir $(DATA_DIR) --report-interval 6h
+	$(SERVER) --addr :8080 --data-dir $(DATA_DIR) --report-interval 48h
 
 ## Scan this machine and report to the local server
 run-agent: $(AGENT)
