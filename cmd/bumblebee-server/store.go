@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -88,7 +89,58 @@ func NewStore(dataDir string, staleAfter time.Duration) (*Store, error) {
 	if err := s.load(); err != nil {
 		return nil, err
 	}
+	// Load persisted stale-after if the operator updated it via the UI
+	if saved := s.loadStaleAfter(); saved > 0 {
+		s.staleAfter = saved
+	}
 	return s, nil
+}
+
+// GetStaleAfter returns the current stale-after threshold.
+func (s *Store) GetStaleAfter() time.Duration {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.staleAfter
+}
+
+// UpdateStaleAfter updates the stale-after threshold and persists it.
+func (s *Store) UpdateStaleAfter(d time.Duration) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.staleAfter = d
+	return os.WriteFile(
+		filepath.Join(s.dataDir, "stale_after.txt"),
+		[]byte(d.String()),
+		0o644,
+	)
+}
+
+func (s *Store) loadStaleAfter() time.Duration {
+	b, err := os.ReadFile(filepath.Join(s.dataDir, "stale_after.txt"))
+	if err != nil {
+		return 0
+	}
+	d, err := time.ParseDuration(strings.TrimSpace(string(b)))
+	if err != nil {
+		return 0
+	}
+	return d
+}
+
+// Delete removes an endpoint from the fleet and its raw audit log.
+func (s *Store) Delete(id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.states, id)
+	// clean up any in-flight buffers for this endpoint
+	for key := range s.buffers {
+		if strings.HasPrefix(key, id+"|") {
+			delete(s.buffers, key)
+		}
+	}
+	// remove raw audit log (best-effort)
+	_ = os.Remove(filepath.Join(s.dataDir, "raw", id+".ndjson"))
+	return s.persistLocked()
 }
 
 func (s *Store) snapshotPath() string {

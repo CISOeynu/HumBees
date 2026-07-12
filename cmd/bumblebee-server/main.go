@@ -29,7 +29,7 @@ func main() {
 	var (
 		addr           = flag.String("addr", ":8080", "address to listen on, e.g. :8080 or 0.0.0.0:8080")
 		dataDir        = flag.String("data-dir", "./bumblebee-server-data", "directory for fleet state + raw audit log")
-		reportEvery    = flag.Duration("report-interval", 6*time.Hour, "expected agent reporting cadence; endpoints go gray after 2× this")
+		reportEvery    = flag.Duration("report-interval", 48*time.Hour, "expected agent reporting cadence; endpoints go gray after 2× this")
 		ingestTokenEnv = flag.String("ingest-token-env", "", "env var holding an optional bearer token agents must send to /ingest (default: no auth)")
 	)
 	flag.Parse()

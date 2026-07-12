@@ -12,7 +12,7 @@ set -euo pipefail
 
 SERVER="__SERVER__"
 PORT="__PORT__"
-INTERVAL_HOURS="6"
+INTERVAL_HOURS="48"
 PROFILE="baseline"
 VERSION="latest"
 BINARY_URL=""

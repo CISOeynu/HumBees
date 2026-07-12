@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/perplexityai/bumblebee/internal/model"
 )
@@ -35,6 +36,8 @@ func (s *Server) routes() *http.ServeMux {
 	mux.HandleFunc("/api/fleet", s.handleFleet)
 	mux.HandleFunc("/api/endpoint/", s.handleEndpoint)
 	mux.HandleFunc("/api/packages/", s.handlePackages)
+	mux.HandleFunc("/api/delete/", s.handleDelete)
+	mux.HandleFunc("/api/config", s.handleConfig)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 
 	// Templated scripts — server/port injected from the request Host header
@@ -238,4 +241,54 @@ func (s *Server) handlePackages(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pkgs)
+}
+
+func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete && r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/delete/")
+	if id == "" {
+		http.Error(w, "missing endpoint id", http.StatusBadRequest)
+		return
+	}
+	if err := s.store.Delete(id); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{"deleted": id})
+}
+
+func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"stale_after": s.store.GetStaleAfter().String(),
+			"stale_after_hours": s.store.GetStaleAfter().Hours(),
+		})
+	case http.MethodPost:
+		var body struct {
+			StaleAfterHours float64 `json:"stale_after_hours"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.StaleAfterHours <= 0 {
+			http.Error(w, "invalid body: need {stale_after_hours: N}", http.StatusBadRequest)
+			return
+		}
+		d := time.Duration(body.StaleAfterHours * float64(time.Hour))
+		if err := s.store.UpdateStaleAfter(d); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Printf("stale-after updated to %s", d)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"stale_after": d.String(),
+			"stale_after_hours": d.Hours(),
+		})
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
 }

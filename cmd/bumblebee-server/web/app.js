@@ -1,5 +1,6 @@
 /* ── state ─────────────────────────────────────────────────────────── */
 let fleet = [];
+let staleAfterHours = 96; // default 2×48h; synced from server on load
 const $ = id => document.getElementById(id);
 
 /* ── helpers ────────────────────────────────────────────────────────── */
@@ -53,6 +54,51 @@ document.querySelectorAll('.tab').forEach(btn => {
 });
 
 /* ── fleet tab ──────────────────────────────────────────────────────── */
+function renderStaleDropdown() {
+  const options = [
+    { label: '12 hours',  hours: 12   },
+    { label: '24 hours',  hours: 24   },
+    { label: '48 hours (2 days)',  hours: 48   },
+    { label: '72 hours (3 days)',  hours: 72   },
+    { label: '1 week',    hours: 168  },
+    { label: '2 weeks',   hours: 336  },
+    { label: '30 days',   hours: 720  },
+    { label: 'Never',     hours: 87600 },
+  ];
+  const sel = $('stale-select');
+  if (!sel) return;
+  sel.innerHTML = options.map(o =>
+    `<option value="${o.hours}" ${Math.round(staleAfterHours) === o.hours ? 'selected' : ''}>${o.label}</option>`
+  ).join('');
+}
+
+async function onStaleChange(sel) {
+  const hours = parseFloat(sel.value);
+  try {
+    await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stale_after_hours: hours })
+    });
+    staleAfterHours = hours;
+    renderFleet(); // re-color cards immediately
+  } catch(e) {
+    alert('Failed to update: ' + e);
+  }
+}
+
+async function deleteEndpoint(id, hostname) {
+  if (!confirm(`Remove "${hostname}" from the fleet?\n\nThis deletes its history from the server. The agent on that machine keeps running until you uninstall it there.`)) return;
+  try {
+    await fetch(`/api/delete/${id}`, { method: 'DELETE' });
+    fleet = fleet.filter(e => e.id !== id);
+    renderFleet();
+    renderReports();
+  } catch(e) {
+    alert('Delete failed: ' + e);
+  }
+}
+
 function renderFleet() {
   const q = $('filter').value.trim().toLowerCase();
   const filtered = sortedFleet(fleet).filter(e =>
@@ -76,7 +122,11 @@ function renderFleet() {
     <div class="card ${e.light}" data-id="${e.id}">
       <div class="card-top">
         <div class="host">${e.endpoint?.hostname || '(unknown)'}</div>
-        <div class="light ${e.light}"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="light ${e.light}"></div>
+          <button class="del-btn" title="Remove from fleet"
+            onclick="event.stopPropagation();deleteEndpoint('${e.id}','${(e.endpoint?.hostname||'?').replace(/'/g,"\\'")}')">🗑</button>
+        </div>
       </div>
       <div class="meta">
         ${e.endpoint?.os||'?'} / ${e.endpoint?.arch||'?'} · ${e.endpoint?.username||'?'}<br>
@@ -118,6 +168,7 @@ function renderReports() {
       <div class="ractions">
         <button class="btn btn-primary" onclick="downloadReport('${e.id}')">⬇ HTML Report</button>
         <button class="btn" onclick="showDetail('${e.id}')">View</button>
+        <button class="btn btn-danger" onclick="deleteEndpoint('${e.id}','${(e.endpoint?.hostname||'?').replace(/'/g,"\\'")}')">🗑 Remove</button>
       </div>
     </div>`).join('');
 }
@@ -530,9 +581,15 @@ async function showDetail(id) {
 /* ── polling ────────────────────────────────────────────────────────── */
 async function poll() {
   try {
-    const res = await fetch('/api/fleet');
-    const data = await res.json();
+    const [fleetRes, configRes] = await Promise.all([
+      fetch('/api/fleet'),
+      fetch('/api/config'),
+    ]);
+    const data = await fleetRes.json();
     fleet = Array.isArray(data) ? data : [];
+    const cfg = await configRes.json();
+    staleAfterHours = cfg.stale_after_hours || 96;
+    renderStaleDropdown();
     renderFleet();
     renderReports();
   } catch(e) {

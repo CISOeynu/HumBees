@@ -168,3 +168,25 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
 .clean-banner { background: var(--panel-2); border: 1px solid var(--border);
   border-radius: 10px; padding: 28px; text-align: center;
   color: var(--muted); font-size: 15px; margin-top: 12px; }
+
+/* ── STALE DROPDOWN + TOOLBAR RIGHT ── */
+.toolbar-right { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.stale-label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.stale-label select {
+  background: var(--panel); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 6px 10px; font-size: 13px; font-family: inherit; cursor: pointer;
+}
+.stale-label select:focus { outline: none; border-color: var(--accent); }
+
+/* ── DELETE BUTTON (card) ── */
+.del-btn {
+  background: none; border: none; font-size: 14px; cursor: pointer;
+  opacity: 0; transition: opacity .15s; padding: 2px 4px; border-radius: 5px;
+  line-height: 1;
+}
+.card:hover .del-btn { opacity: 0.5; }
+.del-btn:hover { opacity: 1 !important; background: rgba(229,72,77,.15); }
+
+/* ── DANGER BUTTON ── */
+.btn-danger { color: var(--red); border-color: rgba(229,72,77,.3); }
+.btn-danger:hover { background: rgba(229,72,77,.12); border-color: var(--red); }

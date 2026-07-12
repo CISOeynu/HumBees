@@ -24,11 +24,17 @@
   <section id="tab-fleet" class="tab-section">
     <div class="toolbar">
       <input id="filter" type="search" placeholder="Filter by hostname, user, OS…">
-      <div class="legend">
-        <span class="dot red"></span>high/critical &nbsp;
-        <span class="dot yellow"></span>low/medium &nbsp;
-        <span class="dot green"></span>clean &nbsp;
-        <span class="dot gray"></span>stale
+      <div class="toolbar-right">
+        <label class="stale-label">
+          Mark stale after:
+          <select id="stale-select" onchange="onStaleChange(this)"></select>
+        </label>
+        <div class="legend">
+          <span class="dot red"></span>high/critical &nbsp;
+          <span class="dot yellow"></span>low/medium &nbsp;
+          <span class="dot green"></span>clean &nbsp;
+          <span class="dot gray"></span>stale
+        </div>
       </div>
     </div>
     <div id="grid" class="grid"></div>
