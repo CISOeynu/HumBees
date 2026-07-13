@@ -12,7 +12,7 @@ This fork adds `bumblebee-server`: a central fleet console that collects reports
 
 ```sh
 git clone https://github.com/cisoeynu/humbees.git
-cd bumblebee
+cd humbees
 make build
 make run-agent    # scans this machine, prints NDJSON to stdout
 ```
