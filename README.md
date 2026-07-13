@@ -11,7 +11,7 @@ This fork adds `bumblebee-server`: a central fleet console that collects reports
 ## Quick start (single machine)
 
 ```sh
-git clone https://github.com/YOUR-ORG/bumblebee.git
+git clone https://github.com/cisoeynu/bumblebee.git
 cd bumblebee
 make build
 make run-agent    # scans this machine, prints NDJSON to stdout
